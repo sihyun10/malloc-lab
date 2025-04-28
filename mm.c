@@ -65,6 +65,7 @@ static void *heap_listp;
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
 static void *find_fit(size_t asize);
+static void place(void *bp, size_t asize);
 
 /* 
  * mm_init - initialize the malloc package.
@@ -209,4 +210,20 @@ static void *find_fit(size_t asize) {
     }
   }
   return NULL;
+}
+
+static void place(void *bp, size_t asize) {
+  size_t csize = GET_SIZE(HDRP(bp));
+
+  if ((csize - asize) >= (2 * DSIZE)) {
+    PUT(HDRP(bp), PACK(asize, 1));
+    PUT(FTRP(bp), PACK(asize, 1));
+    bp = NEXT_BLKP(bp);
+    PUT(HDRP(bp), PACK(csize - asize, 0));
+    PUT(FTRP(bp), PACK(csize - asize, 0));
+  }
+  else {
+    PUT(HDRP(bp), PACK(csize, 1));
+    PUT(FTRP(bp), PACK(csize, 1));
+  }
 }
