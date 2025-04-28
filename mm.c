@@ -63,6 +63,7 @@ team_t team = {
 static void *heap_listp;
 
 static void *extend_heap(size_t words);
+static void *coalesce(void *bp);
 
 /* 
  * mm_init - initialize the malloc package.
@@ -127,16 +128,18 @@ void *mm_realloc(void *ptr, size_t size)
     return newptr;
 }
 
+static void *extend_heap(size_t words) {
+  char *bp;
+  size_t size;
 
+  size = (words % 2) ? (words + 1) * WSIZE : words * WSIZE;
+  if ((long)(bp = mem_sbrk(size)) == -1) {
+    return NULL;
+  }
 
+  PUT(HDRP(bp), PACK(size, 0)); /* Free block header */
+  PUT(FTRP(bp), PACK(size, 0)); /* Free block footer */
+  PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1)); /* New epilogue header */
 
-
-
-
-
-
-
-
-
-
-
+  return coalesce(bp);
+}
