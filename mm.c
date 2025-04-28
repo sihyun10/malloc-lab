@@ -64,6 +64,7 @@ static void *heap_listp;
 
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
+static void *find_fit(size_t asize);
 
 /* 
  * mm_init - initialize the malloc package.
@@ -196,4 +197,16 @@ static void *coalesce(void *bp) {
     bp = PREV_BLKP(bp);
   }
   return bp;
+}
+
+/* first fit -> 가용블록 리스트를 처음부터 검색해 크기가 맞는 첫번째 가용 블록 선택 */
+static void *find_fit(size_t asize) {
+  void *bp;
+
+  for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
+    if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))) {
+      return bp;
+    }
+  }
+  return NULL;
 }
