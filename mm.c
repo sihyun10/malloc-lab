@@ -60,7 +60,7 @@ team_t team = {
 #define NEXT_BLKP(bp) ((char *)(bp) + GET_SIZE(((char *)(bp)-WSIZE)))
 #define PREV_BLKP(bp) ((char *)(bp)-GET_SIZE(((char *)(bp)-DSIZE)))
 
-static void *heap_listp;
+static char *heap_listp = 0;
 
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
