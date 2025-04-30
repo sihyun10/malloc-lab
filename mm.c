@@ -61,6 +61,7 @@ team_t team = {
 #define PREV_BLKP(bp) ((char *)(bp)-GET_SIZE(((char *)(bp)-DSIZE)))
 
 static char *heap_listp = 0;
+static void *next_fit_ptr = NULL; 
 
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
@@ -199,18 +200,28 @@ static void *coalesce(void *bp) {
     PUT(FTRP(NEXT_BLKP(bp)), PACK(size, 0));
     bp = PREV_BLKP(bp);
   }
+
+  /* 병합 후에 next_fit_ptr 업데이트 */
+  next_fit_ptr = bp;
   return bp;
 }
 
-/* first fit -> 가용블록 리스트를 처음부터 검색해 크기가 맞는 첫번째 가용 블록 선택 */
+/* next fit -> 마지막으로 메모리를 할당한 위치부터 탐색 시작해 전체 리스트를 순환 */
 static void *find_fit(size_t asize) {
   void *bp;
 
-  for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
+  if (next_fit_ptr == NULL) {
+    next_fit_ptr = heap_listp;
+  }
+
+  /* next_fit_ptr부터 힙 끝까지 탐색 */
+  for (bp = next_fit_ptr; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
     if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))) {
+      next_fit_ptr = bp;
       return bp;
     }
   }
+
   return NULL;
 }
 
